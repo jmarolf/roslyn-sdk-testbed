@@ -1,0 +1,123 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ImplicitUsings>true</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <CompilerVersion>4.1.0</CompilerVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Analyzer</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Authors>analyzer contributors</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>analyzer</PackageTags>
+    <RepositoryUrl>https://github.com/analyzer/dotnet-analyzer</RepositoryUrl>
+    <Description>Set of Roslyn analyzers</Description>
+    <PackAsRoslynComponent>true</PackAsRoslynComponent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+<!-- *************************** Added by the SDK *************************** -->
+
+  <!-- *************************** Common Data *************************** -->
+  <!-- Add Default Usings For Analyzers -->
+  <ItemGroup Condition="'$(Language)' == 'C#' AND ('$(ImplicitUsings)' == 'true' or '$(ImplicitUsings)' == 'enable')">
+    <Using Include="Microsoft.CodeAnalysis" />
+    <Using Include="System.Collections.Immutable" />
+    <Using Include="Microsoft.CodeAnalysis.Diagnostics" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Used to activate rosyln component debugging in Visual Studio -->
+    <IsRoslynComponent>true</IsRoslynComponent>
+
+    <!-- 
+        By default netstandard do not have their dependencies copied to the output directory.
+        In order to easily find the dependencies in a project-reference scenario
+        we want these copied.
+    -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <!-- 
+        Tells msbuild to create a deps.json file listing all the analyzers dependencies
+    -->
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+
+  <!-- Dependencies for this project -->
+  <ItemGroup>
+    <!-- Use the SDK to define implicit package references -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(CompilerVersion)" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$(PackAsRoslynComponent) == 'true'">
+
+    <!-- Define the path to place analyzers in the nuget pakcage -->
+    <AnalyzerPackagePath Condition="$(AnalyzerPackagePath) == ''">analyzers/dotnet</AnalyzerPackagePath>
+
+    <!-- Allow the pack targets to run on the project -->
+    <IsPackable>true</IsPackable>
+
+    <!-- Custom package type that folks who want to extend msbuild targets can use -->
+    <PackageType>Analyzer</PackageType>
+
+    <!--
+        A Boolean value that specifies whether the package is marked as a development-only dependency,
+        which prevents the package from being included as a dependency in other packages. With
+        PackageReference (NuGet 4.8+), this flag also means that compile-time assets are excluded from
+        compilation.
+        https://github.com/NuGet/Home/wiki/DevelopmentDependency-support-for-PackageReference
+    -->
+    <DevelopmentDependency>true</DevelopmentDependency>
+
+    <!--
+        Set to true to suppress package dependencies from the generated NuGet package.
+        https://github.com/NuGet/docs.microsoft.com-nuget/blob/main/docs/reference/msbuild-targets.md#suppressing-dependencies
+    -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+
+    <!-- This Boolean value specifies whether the build output assemblies should be packed into the .nupkg file or not. -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <!--
+        Write a custom target and specify it as the value of the $(TargetsForTfmSpecificContentInPackage)
+        property. 
+        https://github.com/NuGet/docs.microsoft.com-nuget/blob/main/docs/reference/msbuild-targets.md#advanced-extension-points-to-create-customized-package
+    -->
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzerToOutput;_AddAnalyzerDependenciesToOutput</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <!--
+    For any files to include in the package, the target should write those files into the
+    ItemGroup TfmSpecificPackageFile and set the following optional metadata:
+
+      - PackagePath: Path where the file should be output in the package. NuGet issues a warning 
+                     if more than one file is added to the same package path.
+  
+      - BuildAction: The build action to assign to the file, required only if the package path
+                     is in the contentFiles folder. Defaults to "None".
+  
+    https://github.com/NuGet/docs.microsoft.com-nuget/blob/main/docs/reference/msbuild-targets.md#advanced-extension-points-to-create-customized-package
+  -->
+  <Target Name="_AddAnalyzerToOutput" Condition="$(PackAsRoslynComponent) == 'true'">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).dll" PackagePath="$(AnalyzerPackagePath)" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).deps.json" PackagePath="$(AnalyzerPackagePath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_AddAnalyzerDependenciesToOutput" 
+          DependsOnTargets="ResolvePackageAssets"
+          Condition="$(PackAsRoslynComponent) == 'true'">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(RuntimeCopyLocalItems)" PackagePath="$(AnalyzerPackagePath)" />
+    </ItemGroup>
+  </Target>
+</Project>
