@@ -1,6 +1,6 @@
 ﻿namespace CSharpAnalyzer;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 public class Analyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "AnalyzerDiagnosticId";
