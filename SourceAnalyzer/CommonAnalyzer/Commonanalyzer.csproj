@@ -39,14 +39,13 @@
     <IsRoslynComponent>true</IsRoslynComponent>
 
     <!-- 
-        By default netstandard do not have their dependencies copied to the output directory.
-        In order to easily find the dependencies in a project-reference scenario
-        we want these copied.
+      In order to easily find the dependencies in a project-reference scenario
+      we want these copied.
     -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
     <!-- 
-        Tells msbuild to create a deps.json file listing all the analyzers dependencies
+      Tells msbuild to create a deps.json file listing all the analyzers dependencies
     -->
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
@@ -69,17 +68,17 @@
     <PackageType>Analyzer</PackageType>
 
     <!--
-        A Boolean value that specifies whether the package is marked as a development-only dependency,
-        which prevents the package from being included as a dependency in other packages. With
-        PackageReference (NuGet 4.8+), this flag also means that compile-time assets are excluded from
-        compilation.
-        https://github.com/NuGet/Home/wiki/DevelopmentDependency-support-for-PackageReference
+      A Boolean value that specifies whether the package is marked as a development-only dependency,
+      which prevents the package from being included as a dependency in other packages. With
+      PackageReference (NuGet 4.8+), this flag also means that compile-time assets are excluded from
+      compilation.
+      https://github.com/NuGet/Home/wiki/DevelopmentDependency-support-for-PackageReference
     -->
     <DevelopmentDependency>true</DevelopmentDependency>
 
     <!--
-        Set to true to suppress package dependencies from the generated NuGet package.
-        https://github.com/NuGet/docs.microsoft.com-nuget/blob/main/docs/reference/msbuild-targets.md#suppressing-dependencies
+      Set to true to suppress package dependencies from the generated NuGet package.
+      https://github.com/NuGet/docs.microsoft.com-nuget/blob/main/docs/reference/msbuild-targets.md#suppressing-dependencies
     -->
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 
@@ -94,8 +93,8 @@
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddTFMSpecificAnalyzerDependenciesToOutput</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
-  <UsingTask Condition="$(PackAsRoslynComponent) == 'true'" TaskName="GenerateGatherAnalyzerByPackageIdTarget" AssemblyFile="C:\source\jmarolf\scratch\analyzer-sdk-test\MSBuild.Tasks\bin\Release\net6.0\MSBuild.Tasks.dll" />
-  <UsingTask Condition="$(PackAsRoslynComponent) == 'true'" TaskName="GenerateAnalyzerTargetLinesForGivenTargetFramework" AssemblyFile="C:\source\jmarolf\scratch\analyzer-sdk-test\MSBuild.Tasks\bin\Release\net6.0\MSBuild.Tasks.dll" />
+  <UsingTask Condition="$(PackAsRoslynComponent) == 'true'" TaskName="GenerateGatherAnalyzerByPackageIdTarget" AssemblyFile="C:\source\jmarolf\analyzer-sdk-test\MSBuild.Tasks\bin\Release\net6.0\MSBuild.Tasks.dll" />
+  <UsingTask Condition="$(PackAsRoslynComponent) == 'true'" TaskName="GenerateAnalyzerTargetLinesForGivenTargetFramework" AssemblyFile="C:\source\jmarolf\analyzer-sdk-test\MSBuild.Tasks\bin\Release\net6.0\MSBuild.Tasks.dll" />
   <!--
     For any files to include in the package, the target should write those files into the
     ItemGroup TfmSpecificPackageFile and set the following optional metadata:
