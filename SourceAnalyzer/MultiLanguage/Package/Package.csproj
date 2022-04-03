@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <PackAsRoslynComponent>true</PackAsRoslynComponent>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Analyzer</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Authors>analyzer contributors</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>analyzer</PackageTags>
+    <RepositoryUrl>https://github.com/analyzer/dotnet-analyzer</RepositoryUrl>
+    <Description>Set of Roslyn analyzers</Description>
+    <PackAsRoslynComponent>true</PackAsRoslynComponent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CSharpAnalyzer\CSharpAnalyzer.csproj" OutputItemType="CSharpAnalyzer" />
+    <ProjectReference Include="..\CSharpCodeFix\CSharpCodeFix.csproj" OutputItemType="CSharpAnalyzer" />
+    <ProjectReference Include="..\VisualBasicAnalyzer\VisualBasicAnalyzer.csproj" OutputItemType="VisualBasicAnalyzer" />
+    <ProjectReference Include="..\VisualBasicCodeFix\VisualBasicCodeFix.csproj" OutputItemType="VisualBasicAnalyzer" />
+    <ProjectReference Include="..\BothLanguages\BothLanguages.csproj" OutputItemType="AnyLanguageAnalyzer" />
+  </ItemGroup>
+
+  <Target Name="_AddTFMSpecificAnalyzerDependenciesToOutput" DependsOnTargets="ResolvePackageAssets" Condition="$(PackAsRoslynComponent) == 'true'">
+
+    <!-- Add all the analyzer dependencies to a TFM specific folder -->
+    <ItemGroup>
+      <CSharpAnalyzers Include="@(ProjectReference)" Condition="@(ProjectReference->HasMetadata('CSharpAnalyzer'))"/>
+      <CSharpAnalyzers Include="@(ProjectReference)" Condition="@(ProjectReference->HasMetadata('AnyLanguageAnalyzer'))"/>
+      <VisualBasicAnalyzers Include="@(ProjectReference)" Condition="@(ProjectReference->HasMetadata('VisualBasicAnalyzer'))"/>
+      <VisualBasicAnalyzers Include="@(ProjectReference)" Condition="@(ProjectReference->HasMetadata('AnyLanguageAnalyzer'))"/>
+    </ItemGroup>
+
+    <!-- Generate a targets file for this TFM that included these TFM specific analyzer assemblies -->
+    <ItemGroup>
+      <TargetSpecificAnalyzerTargetsPath Include="$(IntermediateOutputPath)$(PackageId).$(TargetFramework).targets" />
+    </ItemGroup>
+    <GenerateAnalyzerTargetLinesForGivenTargetFramework PackageId="$(PackageId)" DependsOnTargets="_GatherAnalyzerByPackageId_$(PackageId)" TargetFramework="$(TargetFramework)" TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)">
+      <Output TaskParameter="TargetLines" ItemName="_AddAnalyzerForTFM" />
+    </GenerateAnalyzerTargetLinesForGivenTargetFramework>
+    <WriteLinesToFile File="@(TargetSpecificAnalyzerTargetsPath)" Lines="@(_AddAnalyzerForTFM)" Overwrite="true" WriteOnlyWhenDifferent="true" Encoding="Unicode" />
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(TargetSpecificAnalyzerTargetsPath)" PackagePath="build" />
+    </ItemGroup>
+  </Target>
+
+</Project>
